@@ -6,7 +6,7 @@ from .SignalView import SignalView
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        super(QMainWindow, self).__init__()
+        super(MainWindow, self).__init__()
 
         widget = QWidget()
         self.setCentralWidget(widget)
@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
         vbox = QVBoxLayout()
         hboxSignalButtons = QHBoxLayout()
 
-        console = Console()
+        console = Console(self)
         signalView = SignalView()
 
         widgetSignalButtons = QWidget()
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.createActions()
         self.createMenu()
 
-        self.setLayout(vbox)
+        widget.setLayout(vbox)
         self.setWindowTitle("kit")
 
     def createSignalButtons(self, buttonsPanel):
