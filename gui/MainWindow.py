@@ -14,7 +14,9 @@ class MainWindow(QMainWindow):
         vbox = QVBoxLayout()
         hboxSignalButtons = QHBoxLayout()
 
-        console = Console(self)
+        welcomeMessage = '''test welcome message\n'''
+
+        console = Console(self, welcomeMessage=welcomeMessage)
         signalView = SignalView()
 
         widgetSignalButtons = QWidget()

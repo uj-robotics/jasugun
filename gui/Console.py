@@ -1,26 +1,41 @@
-from PyQt5.QtWidgets import QPlainTextEdit
+from PyQt5.QtWidgets import QPlainTextEdit, QApplication
+from PyQt5 import QtGui, QtCore
 from code import InteractiveConsole
+import queue
 import threading
+import sys
 
 class Console(QPlainTextEdit, InteractiveConsole):
     def __init__(self, parent, locals=locals(), welcomeMessage=''):
-        super(QPlainTextEdit, self).__init__()
-        super(InteractiveConsole, self).__init__(locals=locals)
+        QPlainTextEdit.__init__(self)
+        InteractiveConsole.__init__(self, locals=locals)
+        #TODO: capturing output of InteractiveConsole in that way
+        #is pretty much overkill
+        sys.stdout = sys.stderr = self
 
         self.parent = parent
+        self.welcomeMessage = welcomeMessage
         self.history = []
         self.historyIndex = 0
         self.prompt = ''
-        self.queue = threading.Queue()
+        self.queue = queue.Queue()
 
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(400)
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         self.setUndoRedoEnabled(False)
-        self.document().setDefaultFont(QtGui.QFont("monospace", 10, GtGui.QFont.Normal))
+        self.document().setDefaultFont(QtGui.QFont("monospace", 10, QtGui.QFont.Normal))
 
-        super(InteractiveConsole, self).interact(welcomeMessage)
+        thread = threading.Thread(target=self.run, daemon=True)
+        thread.start()
+
+    def run(self):
+        super(Console, self).interact(self.welcomeMessage)
 
     def addToHistory(self, entry):
-        if entry and self.history and history[-1] != entry:
+        if entry:
+            if self.history and self.history[-1] == entry:
+                return
             self.history.append(entry)
             self.historyIndex = len(self.history)
 
@@ -58,7 +73,7 @@ class Console(QPlainTextEdit, InteractiveConsole):
 
     def getCommand(self):
         doc = self.document()
-        line = doc.findBlockByLineNumber(doc.lineCount()-1).text
+        line = str(doc.findBlockByLineNumber(doc.lineCount()-1).text())
         line = line.rstrip()
         line = line[len(self.prompt):]
         return line
@@ -76,25 +91,40 @@ class Console(QPlainTextEdit, InteractiveConsole):
 
     def write(self, data):
         self.appendPlainText(data)
+        QtCore.QCoreApplication.processEvents()
 
     def raw_input(self, prompt=''):
         self.prompt = prompt
         self.appendPlainText(self.prompt)
-        return self.queue.get()
+        self.moveCursor(QtGui.QTextCursor.Down)
+        QtCore.QCoreApplication.processEvents()
+
+        input = self.queue.get()
+        self.queue.task_done()
+        return input
 
     def keyPressEvent(self, event):
         key = event.key()
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            self.queue.put(self.getCommand())
+            command = self.getCommand()
+            self.addToHistory(command)
+            self.queue.put(command)
+            return
+        elif key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Backspace):
+            if self.getCursorPos() == 0:
+                return
         elif key == QtCore.Qt.Key_Home:
             self.setCursorPosBegin()
+            return
         elif key == QtCore.Qt.Key_End:
             self.setCursorPosEnd()
+            return
         elif key == QtCore.Qt.Key_Up:
             self.setCommand(self.prevHistoryEntry())
+            return
         elif key == QtCore.Qt.Key_Down:
             self.setCommand(self.nextHistoryEntry())
-        elif key == QtCore.Qt.Key_D and event.modifiers() == QtCore.Qt.ControlMidifier:
+            return
+        elif key == QtCore.Qt.Key_D and event.modifiers() == QtCore.Qt.ControlModifier:
             self.parent.close()
-        else:
-            super(QPlainTextEdit, self).keyPressEvent(event)
+        super(Console, self).keyPressEvent(event)
