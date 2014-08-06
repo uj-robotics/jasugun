@@ -1,24 +1,22 @@
 from PyQt5.QtWidgets import QPlainTextEdit, QApplication
 from PyQt5 import QtGui, QtCore
 from code import InteractiveConsole
-import queue
-import threading
 import sys
 
-class Console(QPlainTextEdit, InteractiveConsole):
+class Console(QPlainTextEdit):
     def __init__(self, parent, locals=locals(), welcomeMessage=''):
         QPlainTextEdit.__init__(self)
-        InteractiveConsole.__init__(self, locals=locals)
         #TODO: capturing output of InteractiveConsole in that way
         #is pretty much overkill
         sys.stdout = sys.stderr = self
 
         self.parent = parent
-        self.welcomeMessage = welcomeMessage
+        self.console = InteractiveConsole(locals=locals)
+        self.ps1 = '>>> '
+        self.ps2 = '... '
+        self.prompt = self.ps1
         self.history = []
         self.historyIndex = 0
-        self.prompt = ''
-        self.queue = queue.Queue()
 
         self.setMinimumWidth(500)
         self.setMinimumHeight(400)
@@ -26,11 +24,8 @@ class Console(QPlainTextEdit, InteractiveConsole):
         self.setUndoRedoEnabled(False)
         self.document().setDefaultFont(QtGui.QFont("monospace", 10, QtGui.QFont.Normal))
 
-        thread = threading.Thread(target=self.run, daemon=True)
-        thread.start()
-
-    def run(self):
-        super(Console, self).interact(self.welcomeMessage)
+        self.write(welcomeMessage)
+        self.write(self.prompt)
 
     def addToHistory(self, entry):
         if entry:
@@ -90,25 +85,22 @@ class Console(QPlainTextEdit, InteractiveConsole):
         self.moveCursor(QtGui.QTextCursor.EndOfLine)
 
     def write(self, data):
-        self.appendPlainText(data)
+        self.appendPlainText(data.rstrip('\n'))
         QtCore.QCoreApplication.processEvents()
-
-    def raw_input(self, prompt=''):
-        self.prompt = prompt
-        self.appendPlainText(self.prompt)
-        self.moveCursor(QtGui.QTextCursor.Down)
-        QtCore.QCoreApplication.processEvents()
-
-        input = self.queue.get()
-        self.queue.task_done()
-        return input
 
     def keyPressEvent(self, event):
         key = event.key()
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             command = self.getCommand()
             self.addToHistory(command)
-            self.queue.put(command)
+            requireMore = self.console.push(command)
+            
+            if requireMore:
+                self.prompt = self.ps2
+            else:
+                self.prompt = self.ps1
+            
+            self.write(self.prompt)
             return
         elif key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Backspace):
             if self.getCursorPos() == 0:
