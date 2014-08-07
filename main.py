@@ -8,7 +8,7 @@ app = QApplication(sys.argv)
 if __name__ == '__main__':
     from view import MainWindow
     from model import SignalModel, Emotiv
-    from controller import ConsoleController
+    from controller import ConsoleController, signalInit
     
     source = Emotiv()
     signalNames = source.getAvailableSignals()
@@ -19,7 +19,9 @@ if __name__ == '__main__':
     window = MainWindow(signalNames)
 
     welcomeMessage = '''test welcome message\n'''
-    consoleController = ConsoleController(window.consoleView, window, signals, welcomeMessage)
+    consoleController = ConsoleController(window.consoleView, window,
+                                          signals, welcomeMessage)
+    signalInit(window.signalView, window.signalButtons, signals)
 
     window.show()
 else:

@@ -12,16 +12,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
         self.consoleView = ConsoleView()
-        signalView = SignalView()
-        signalButtons = QWidget()
+        self.signalView = SignalView()
+        buttonsWidget = QWidget()
 
         hboxSignalButtons = QHBoxLayout()
-        self.buttons = self.createSignalButtons(signalNames, hboxSignalButtons)
-        signalButtons.setLayout(hboxSignalButtons)
+        self.signalButtons = self.createSignalButtons(signalNames, hboxSignalButtons)
+        buttonsWidget.setLayout(hboxSignalButtons)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(signalButtons)
-        vbox.addWidget(signalView)
+        vbox.addWidget(buttonsWidget)
+        vbox.addWidget(self.signalView)
         vbox.addWidget(self.consoleView)
 
         self.createActions()
