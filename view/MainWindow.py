@@ -1,31 +1,28 @@
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QAction, QMessageBox,
                              QMainWindow, QWidget)
-from .Console import Console
+from .ConsoleView import ConsoleView
 from .SignalButton import SignalButton
 from .SignalView import SignalView
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, signalNames):
         super(MainWindow, self).__init__()
 
         widget = QWidget()
         self.setCentralWidget(widget)
 
-        vbox = QVBoxLayout()
-        hboxSignalButtons = QHBoxLayout()
-
-        welcomeMessage = '''test welcome message\n'''
-
-        console = Console(self, welcomeMessage=welcomeMessage)
+        self.consoleView = ConsoleView()
         signalView = SignalView()
+        signalButtons = QWidget()
 
-        widgetSignalButtons = QWidget()
-        self.createSignalButtons(hboxSignalButtons)
-        widgetSignalButtons.setLayout(hboxSignalButtons)
+        hboxSignalButtons = QHBoxLayout()
+        self.buttons = self.createSignalButtons(signalNames, hboxSignalButtons)
+        signalButtons.setLayout(hboxSignalButtons)
 
-        vbox.addWidget(widgetSignalButtons)
+        vbox = QVBoxLayout()
+        vbox.addWidget(signalButtons)
         vbox.addWidget(signalView)
-        vbox.addWidget(console)
+        vbox.addWidget(self.consoleView)
 
         self.createActions()
         self.createMenu()
@@ -33,8 +30,13 @@ class MainWindow(QMainWindow):
         widget.setLayout(vbox)
         self.setWindowTitle("kit")
 
-    def createSignalButtons(self, buttonsPanel):
-        pass
+    def createSignalButtons(self, signalNames, buttonsPanel):
+        buttons = []
+        for name in signalNames:
+            button = SignalButton(name)
+            buttonsPanel.addWidget(button)
+            buttons.append(button)
+        return buttons
 
     def createActions(self):
         self.aboutAct = QAction("&About", self,
