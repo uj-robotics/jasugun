@@ -7,10 +7,10 @@ app = QApplication(sys.argv)
 
 if __name__ == '__main__':
     from view import MainWindow
-    from model import SignalModel, Emotiv
+    from model import SignalModel, Emotiv, Source
     from controller import ConsoleController, signalInit
     
-    source = Emotiv()
+    source = Source()
     signalNames = source.getAvailableSignals()
     signals = []
     for name in signalNames:
@@ -21,11 +21,11 @@ if __name__ == '__main__':
     welcomeMessage = '''test welcome message\n'''
     consoleController = ConsoleController(window.consoleView, window,
                                           signals, welcomeMessage)
-    signalInit(window.signalView, window.signalButtons, signals)
+    signalInit(window.signalView, source, signals, window.signalButtons)
 
     window.show()
+    sys.exit(app.exec_())
 else:
     QMessageBox.about(None, "Error",
                       "This file is standalone program not a module")
-
-sys.exit(app.exec_())
+    exit()

@@ -16,7 +16,8 @@ class MainWindow(QMainWindow):
         buttonsWidget = QWidget()
 
         hboxSignalButtons = QHBoxLayout()
-        self.signalButtons = self.createSignalButtons(signalNames, hboxSignalButtons)
+        self.signalButtons = self.createSignalButtons(signalNames,
+                                                      hboxSignalButtons)
         buttonsWidget.setLayout(hboxSignalButtons)
 
         vbox = QVBoxLayout()

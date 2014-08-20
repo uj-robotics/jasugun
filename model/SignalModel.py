@@ -1,20 +1,21 @@
-from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSlot
 
 class SignalModel(QObject):
     def __init__(self, name):
         super(SignalModel, self).__init__()
 
         self.name = name
-    
-    newData = pyqtSignal()
+        self.storedData = []
+        self.maxLength = 40
 
     def getName(self):
         return self.name
 
-    def processData(self, data):
-        pass
+    def getStoredData(self):
+        return self.storedData
 
     @pyqtSlot(object)
-    def receiveData(self, data):
-        self.processData(data)
-        self.newData.emit()
+    def receiveData(self, package):
+        self.storedData.append(package[self.name])
+        if len(self.storedData) >= self.maxLength:
+            self.storedData.pop(0)
