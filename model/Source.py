@@ -34,7 +34,7 @@ class Source(QObject):
         self.newData.connect(signal.receiveData)
         return signal
 
-    def connectSlot(self, slot):
+    def notify(self, slot):
         self.newDataNotify.connect(slot)
 
     def sendPackage(self, package):

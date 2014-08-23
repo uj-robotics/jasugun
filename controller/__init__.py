@@ -3,4 +3,4 @@ controllers
 """
 
 from .ConsoleController import ConsoleController
-from .signalInit import signalInit
+from .SignalController import SignalController

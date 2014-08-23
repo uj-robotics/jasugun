@@ -39,6 +39,10 @@ class MainWindow(QMainWindow):
             buttons.append(button)
         return buttons
 
+    def signalViewConnect(self, controller):
+        self.signalView.connect(controller.model,
+                                controller.button)
+
     def createActions(self):
         self.aboutAct = QAction("&About", self,
                                 statusTip="learn what it is all about",

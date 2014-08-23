@@ -8,20 +8,24 @@ app = QApplication(sys.argv)
 if __name__ == '__main__':
     from view import MainWindow
     from model import SignalModel, Emotiv, Source
-    from controller import ConsoleController, signalInit
+    from controller import ConsoleController, SignalController
     
     source = Source()
     signalNames = source.getAvailableSignals()
-    signals = []
-    for name in signalNames:
-        signals.append(source.getSignalModel(name))
-
     window = MainWindow(signalNames)
+
+    source.notify(window.signalView.newData)
+
+    signalCtrls = []
+    for button in window.signalButtons:
+        model = source.getSignalModel(button.getName())
+        controller = SignalController(model, button)
+        signalCtrls.append(controller)
+        window.signalViewConnect(controller)
 
     welcomeMessage = '''test welcome message\n'''
     consoleController = ConsoleController(window.consoleView, window,
-                                          signals, welcomeMessage)
-    signalInit(window.signalView, source, signals, window.signalButtons)
+                                          signalCtrls, welcomeMessage)
 
     window.show()
     sys.exit(app.exec_())

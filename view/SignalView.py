@@ -14,11 +14,9 @@ class SignalView(QWidget):
         self.setAutoFillBackground(True)
 
 
-    def connectButton(self, button):
-        button.clicked.connect(self.graphers[button.getName()].setActive)
-
-    def connectSignal(self, signal):
+    def connect(self, signal, button):
         grapher = SignalView.Grapher(self.width, self.grapherHeight, signal)
+        button.clicked.connect(grapher.setActive)
         self.graphers.update({signal.getName() : grapher})
 
     def paintEvent(self, event):
