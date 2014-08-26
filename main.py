@@ -10,25 +10,26 @@ if __name__ == '__main__':
     from model import SignalModel, Emotiv, Source
     from controller import ConsoleController, SignalController
     
-    source = Source()
-    signalNames = source.getAvailableSignals()
-    window = MainWindow(signalNames)
+    with Source as source:
+        source = Source()
+        signalNames = source.getAvailableSignals()
+        window = MainWindow(signalNames)
 
-    source.notify(window.signalView.newData)
+        source.rememberToNotify(window.signalView.newData)
 
-    signalCtrls = []
-    for button in window.signalButtons:
-        model = source.getSignalModel(button.getName())
-        controller = SignalController(model, button)
-        signalCtrls.append(controller)
-        window.signalViewConnect(controller)
+        signalCtrls = []
+        for button in window.signalButtons:
+            model = source.getSignalModel(button.getName())
+            controller = SignalController(model, button)
+            signalCtrls.append(controller)
+            window.signalViewConnect(controller)
 
-    welcomeMessage = '''test welcome message\n'''
-    consoleController = ConsoleController(window.consoleView, window,
+            welcomeMessage = '''test welcome message\n'''
+            consoleController = ConsoleController(window.consoleView, window,
                                           signalCtrls, welcomeMessage)
 
-    window.show()
-    sys.exit(app.exec_())
+        window.show()
+        sys.exit(app.exec_())
 else:
     QMessageBox.about(None, "Error",
                       "This file is standalone program not a module")
