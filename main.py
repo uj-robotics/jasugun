@@ -10,8 +10,7 @@ if __name__ == '__main__':
     from model import SignalModel, Emotiv, Source
     from controller import ConsoleController, SignalController
     
-    with Source as source:
-        source = Source()
+    with Emotiv() as source:
         signalNames = source.getAvailableSignals()
         window = MainWindow(signalNames)
 

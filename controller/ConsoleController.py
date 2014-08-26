@@ -7,7 +7,7 @@ class ConsoleController(QObject):
         super(ConsoleController, self).__init__()
         #TODO: capturing output of InteractiveConsole in that way
         #is pretty much overkill
-        sys.stdout = sys.stderr = consoleView
+        #sys.stdout = sys.stderr = consoleView
 
         self.consoleView = consoleView
         self.consoleView.keyPressed.connect(self.keyPressEvent)

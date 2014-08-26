@@ -1,11 +1,14 @@
 from .Source import Source
 from .EmotivPacket import EmotivPacket
+from subprocess import check_output
 from Crypto.Cipher import AES
 from Crypto import Random
+import threading 
+import os
+import code
 
 class Emotiv(Source):
     def __init__(self, headsetId=0, research_headset=True):
-        self._goOn = True
         self.battery = 0
         self.headsetId = headsetId
         self.research_headset = research_headset
@@ -35,7 +38,6 @@ class Emotiv(Source):
         return self
 
     def __exit__(self):
-        self._goOn = False
         self.hidraw.close()
 
     def setup(self):
@@ -45,11 +47,10 @@ class Emotiv(Source):
     def getAvailableSignals():
         return ['AF3', 'AF4',
                 'F3', 'F4', 'F7', 'F8',
-                'FC4', 'FC5',
+                'FC5', 'FC6',
                 'T7', 'T8',
                 'O1', 'O2',
-                'P7', 'P8',
-                'O1', 'O2']
+                'P7', 'P8']
 
     def setupCrypto(self, sn):
         type = 0 # feature[5]
@@ -103,21 +104,26 @@ class Emotiv(Source):
             setup = self.getLinuxSetup()
             self.serialNum = setup[0]
             if os.path.exists("/dev/" + setup[1]):
-                self.hidraw = open("/dev/" + setup[1])
+                self.hidraw = open("/dev/" + setup[1], 'rb')
             else:
-                self.hidraw = open("/dev/hidraw4")
+                self.hidraw = open("/dev/hidraw4", 'rb')
             self.setupCrypto(self.serialNum)
-        while self._goOn:
+            thread = threading.Thread(target=self.read, daemon=True)
+            thread.start()
+        return True
+
+    def read(self):
+        while True:
             data = self.hidraw.read(32)
             if data != "":
                 packet = self.decryptPacket(data)
                 self.sendPackage(packet)
-        return True
 
     def getLinuxSetup(self):
         rawinputs = []
         for filename in os.listdir("/sys/class/hidraw"):
             realInputPath = check_output(["realpath", "/sys/class/hidraw/" + filename])
+            realInputPath = realInputPath.decode()
             sPaths = realInputPath.split('/')
             s = len(sPaths)
             s = s - 4
@@ -138,14 +144,14 @@ class Emotiv(Source):
                     with open(input[0] + "/serial", 'r') as f:
                         serial = f.readline().strip()
                         f.close()
-                    print "Serial: " + serial + " Device: " + input[1]
+                    print("Serial: " + serial + " Device: " + input[1])
                     # Great we found it. But we need to use the second one...
                     hidraw = input[1]
                     id_hidraw = int(hidraw[-1])
                     # The dev headset might use the first device, or maybe if more than one are connected they might.
                     id_hidraw += 1
                     hidraw = "hidraw" + id_hidraw.__str__()
-                    print "Serial: " + serial + " Device: " + hidraw + " (Active)"
+                    print("Serial: " + serial + " Device: " + hidraw + " (Active)")
                     return [serial, hidraw, ]
             except IOError as e:
-                print "Couldn't open file: %s" % e
+                print("Couldn't open file: %s" % e)

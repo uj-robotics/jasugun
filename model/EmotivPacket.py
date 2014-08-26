@@ -1,4 +1,4 @@
-
+import code
 
 sensorBits = {
     'F3': [10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7],
@@ -24,10 +24,9 @@ class EmotivPacket(object):
     """
 
     def __init__(self, data, sensors):
-        global g_battery
         self.rawData = data
-        self.counter = ord(data[0])
-        self.battery = g_battery
+        self.counter = data[0]
+        self.battery = 0
         if(self.counter > 127):
             self.battery = self.counter
             g_battery = self.battery_percent()
@@ -35,8 +34,8 @@ class EmotivPacket(object):
         self.sync = self.counter == 0xe9
 
         # the RESERVED byte stores the least significant 4 bits for gyroX and gyroY
-        self.gyroX = ((ord(data[29]) << 4) | (ord(data[31]) >> 4))
-        self.gyroY = ((ord(data[30]) << 4) | (ord(data[31]) & 0x0F))
+        self.gyroX = data[29] << 4 | data[31] >> 4
+        self.gyroY = data[30] << 4 | data[31] & 0x0F
         sensors['X']['value'] = self.gyroX
         sensors['Y']['value'] = self.gyroY
 
@@ -51,13 +50,13 @@ class EmotivPacket(object):
         level = 0
         for i in range(13, -1, -1):
             level <<= 1
-            b, o = (bits[i] / 8) + 1, bits[i] % 8
-            level |= (ord(data[b]) >> o) & 1
+            b, o = (bits[i] // 8) + 1, bits[i] % 8
+            level |= (data[b] >> o) & 1
         return level
 
     def handle_quality(self, sensors):
         current_contact_quality = self.get_level(self.rawData, quality_bits) / 540
-        sensor = ord(self.rawData[0])
+        sensor = self.rawData[0]
         if sensor == 0:
             sensors['F3']['quality'] = current_contact_quality
         elif sensor == 1:

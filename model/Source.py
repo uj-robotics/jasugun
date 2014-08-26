@@ -14,6 +14,12 @@ class Source(QObject):
 
         self.setup()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self):
+        pass
+
     def setup(self):
         thread = threading.Thread(target=self.activity, daemon=True)
         thread.start()
@@ -41,6 +47,7 @@ class Source(QObject):
         output = {}
         for name in self.getAvailableSignals():
             output.update({name : package.sensors[name]['value']})
+        print(output)
         self.newData.emit(output)
         self.newDataNotify.emit()
 
