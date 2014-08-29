@@ -6,7 +6,7 @@ class SignalView(QWidget):
     def __init__(self):
         super(SignalView, self).__init__()
 
-        self.grapherHeight = 100
+        self.grapherHeight = 50
         self.graphers = {}
 
         self.setMinimumSize(200, 200)
@@ -15,7 +15,7 @@ class SignalView(QWidget):
 
 
     def connect(self, signal, button):
-        grapher = SignalView.Grapher(self.width, self.grapherHeight, signal)
+        grapher = SignalView.Grapher(signal)
         button.clicked.connect(grapher.setActive)
         self.graphers.update({signal.getName() : grapher})
 
@@ -27,6 +27,11 @@ class SignalView(QWidget):
                 grapher.paint(painter)
                 painter.translate(0, self.grapherHeight)
 
+    def resizeEvent(self, event):
+        for (key, grapher) in self.graphers.items():
+            size = event.size()
+            grapher.resize(size.width(), self.grapherHeight)
+
     @pyqtSlot()
     def newData(self):
         self.update() 
@@ -35,11 +40,12 @@ class SignalView(QWidget):
         
         xStep = 3
 
-        def __init__(self, width, height, signal):
-            self.width = width
-            self.height = height
-            self.signal = signal
-            self.text = self.signal.getName()
+        def __init__(self, model):
+            #width and height is to be set by resize
+            self.width = 0
+            self.height = 0
+            self.model = model
+            self.text = self.model.getName()
             self.offset = 50
             self.active = False
 
@@ -48,12 +54,15 @@ class SignalView(QWidget):
             self.active = active
 
         def paint(self, painter):
-            data = self.signal.getStoredData()
+            data = self.model.getStoredData()
             amplitude = self.height/2
             painter.drawText(0, 0, self.text)
             
             path = QPainterPath()
             painter.translate(self.offset, 0)
+            #signal introduces bias, which is removed here;
+            #TODO: bias should not be removed here, but in model
+            painter.translate(0, amplitude)
             startYOffset = data[0]*amplitude
             painter.translate(0,-startYOffset)
             i = 1
@@ -63,3 +72,8 @@ class SignalView(QWidget):
             painter.drawPath(path)
             painter.translate(0,startYOffset)
             painter.translate(-self.offset, 0)
+
+        def resize(self, width, height):
+            self.width = width
+            self.height = height
+            self.model.setMaxStored(self.width//SignalView.Grapher.xStep)

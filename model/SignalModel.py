@@ -6,7 +6,7 @@ class SignalModel(QObject):
 
         self.name = name
         self.storedData = []
-        self.maxLength = 40
+        self.maxStored = 0
 
     def getName(self):
         return self.name
@@ -14,8 +14,12 @@ class SignalModel(QObject):
     def getStoredData(self):
         return self.storedData
 
+    def setMaxStored(self, maxStored):
+        self.maxStored = maxStored
+
     @pyqtSlot(object)
     def receiveData(self, package):
-        self.storedData.append(package[self.name])
-        if len(self.storedData) >= self.maxLength:
-            self.storedData.pop(0)
+        if self.maxStored > 0:
+            self.storedData.append(package[self.name])
+            if len(self.storedData) >= self.maxStored:
+                self.storedData.pop(0)
