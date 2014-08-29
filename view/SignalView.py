@@ -33,7 +33,7 @@ class SignalView(QWidget):
 
     class Grapher:
         
-        xStep = 10
+        xStep = 3
 
         def __init__(self, width, height, signal):
             self.width = width

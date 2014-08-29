@@ -1,4 +1,5 @@
 import gevent
+import code
 
 try:
     import pywinusb.hid as hid
@@ -359,9 +360,9 @@ class Emotiv(object):
                     os.system('cls')
                 else:
                     os.system('clear')
-                print "Packets Received: %s Packets Processed: %s" % (self.packetsReceived, self.packetsProcessed)
-                print('\n'.join("%s Reading: %s Strength: %s" % (k[1], self.sensors[k[1]]['value'],self.sensors[k[1]]['quality']) for k in enumerate(self.sensors)))
-                print "Battery: %i" % g_battery
+                #print "Packets Received: %s Packets Processed: %s" % (self.packetsReceived, self.packetsProcessed)
+                #print('\n'.join("%s Reading: %s Strength: %s" % (k[1], self.sensors[k[1]]['value'],self.sensors[k[1]]['quality']) for k in enumerate(self.sensors)))
+                #print "Battery: %i" % g_battery
             gevent.sleep(1)
 
     def getLinuxSetup(self):
@@ -388,17 +389,18 @@ class Emotiv(object):
                     with open(input[0] + "/serial", 'r') as f:
                         serial = f.readline().strip()
                         f.close()
-                    print "Serial: " + serial + " Device: " + input[1]
+                    #print "Serial: " + serial + " Device: " + input[1]
                     # Great we found it. But we need to use the second one...
                     hidraw = input[1]
                     id_hidraw = int(hidraw[-1])
                     # The dev headset might use the first device, or maybe if more than one are connected they might.
                     id_hidraw += 1
                     hidraw = "hidraw" + id_hidraw.__str__()
-                    print "Serial: " + serial + " Device: " + hidraw + " (Active)"
+                    #print "Serial: " + serial + " Device: " + hidraw + " (Active)"
                     return [serial, hidraw, ]
             except IOError as e:
-                print "Couldn't open file: %s" % e
+                pass
+                #print "Couldn't open file: %s" % e
 
     def setupWin(self):
         devices = []
@@ -463,6 +465,9 @@ class Emotiv(object):
         while self._goOn:
             try:
                 data = self.hidraw.read(32)
+                #for x in data:
+                #    print(ord(x))
+                #code.interact()
                 if data != "":
                     if _os_decryption:
                         self.packets.put_nowait(EmotivPacket(data))
@@ -513,7 +518,7 @@ class Emotiv(object):
         key = ''.join(k)
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(key, AES.MODE_ECB, iv)
-        for i in k: print "0x%.02x " % (ord(i))
+        #for i in k: print "0x%.02x " % (ord(i))
         while self._goOn:
             while not tasks.empty():
                 task = tasks.get()
@@ -527,8 +532,8 @@ class Emotiv(object):
     def dequeue(self):
         try:
             return self.packets.get()
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
     def close(self):
         if windows:

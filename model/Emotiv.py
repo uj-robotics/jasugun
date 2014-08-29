@@ -31,6 +31,7 @@ class Emotiv(Source):
             'Y': {'value': 0, 'quality': 0},
             'Unknown': {'value': 0, 'quality': 0}
         }
+        self.range = float(1 << 13)
 
         super(Emotiv, self).__init__()
 
@@ -112,12 +113,18 @@ class Emotiv(Source):
             thread.start()
         return True
 
+    def normalize(self, value):
+        return value / self.range
+
     def read(self):
         while True:
             data = self.hidraw.read(32)
             if data != "":
                 packet = self.decryptPacket(data)
-                self.sendPackage(packet)
+                output = {}
+                for (key, data) in packet.sensors.items():
+                    output.update({key : self.normalize(data['value'])})
+                self.sendPackage(output)
 
     def getLinuxSetup(self):
         rawinputs = []

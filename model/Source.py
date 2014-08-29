@@ -44,11 +44,7 @@ class Source(QObject):
         self.newDataNotify.connect(slot)
 
     def sendPackage(self, package):
-        output = {}
-        for name in self.getAvailableSignals():
-            output.update({name : package.sensors[name]['value']})
-        print(output)
-        self.newData.emit(output)
+        self.newData.emit(package)
         self.newDataNotify.emit()
 
     @staticmethod
