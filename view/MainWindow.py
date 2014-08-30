@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QAction, QMessageBox,
-                             QMainWindow, QWidget)
+                             QMainWindow, QWidget, QScrollArea, QSplitter)
+from PyQt5.QtCore import Qt
 from .ConsoleView import ConsoleView
 from .SignalButton import SignalButton
 from .SignalView import SignalView
@@ -15,15 +16,23 @@ class MainWindow(QMainWindow):
         self.signalView = SignalView()
         buttonsWidget = QWidget()
 
+        scroll = QScrollArea()
+        scroll.setWidget(self.signalView)
+        scroll.setWidgetResizable(True)
+
         hboxSignalButtons = QHBoxLayout()
         self.signalButtons = self.createSignalButtons(signalNames,
                                                       hboxSignalButtons)
         buttonsWidget.setLayout(hboxSignalButtons)
 
+        splitter = QSplitter(self)
+        splitter.setOrientation(Qt.Vertical)
+        splitter.addWidget(scroll)
+        splitter.addWidget(self.consoleView)
         vbox = QVBoxLayout()
         vbox.addWidget(buttonsWidget)
-        vbox.addWidget(self.signalView)
-        vbox.addWidget(self.consoleView)
+        vbox.addWidget(splitter)
+        
 
         self.createActions()
         self.createMenu()

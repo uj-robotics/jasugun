@@ -9,7 +9,6 @@ class SignalView(QWidget):
         self.grapherHeight = 50
         self.graphers = {}
 
-        self.setMinimumSize(200, 200)
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 
@@ -22,10 +21,15 @@ class SignalView(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.translate(0, self.grapherHeight*0.5)
+        
+        activeCounter = 0
         for grapher in self.graphers.values():
             if grapher.active:
+                activeCounter += 1
                 grapher.paint(painter)
                 painter.translate(0, self.grapherHeight)
+        
+        self.setMinimumHeight(activeCounter*self.grapherHeight)
 
     def resizeEvent(self, event):
         for (key, grapher) in self.graphers.items():
@@ -60,9 +64,6 @@ class SignalView(QWidget):
             
             path = QPainterPath()
             painter.translate(self.offset, 0)
-            #signal introduces bias, which is removed here;
-            #TODO: bias should not be removed here, but in model
-            painter.translate(0, amplitude)
             startYOffset = data[0]*amplitude
             painter.translate(0,-startYOffset)
             i = 1

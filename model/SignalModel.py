@@ -20,6 +20,6 @@ class SignalModel(QObject):
     @pyqtSlot(object)
     def receiveData(self, package):
         if self.maxStored > 0:
-            self.storedData.append(package[self.name])
+            self.storedData.append(package[self.name]-1)
             if len(self.storedData) >= self.maxStored:
                 self.storedData.pop(0)

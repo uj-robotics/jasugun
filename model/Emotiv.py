@@ -3,7 +3,8 @@ from .EmotivPacket import EmotivPacket
 from subprocess import check_output
 from Crypto.Cipher import AES
 from Crypto import Random
-import threading 
+import threading
+import select
 import os
 import code
 
@@ -32,13 +33,14 @@ class Emotiv(Source):
             'Unknown': {'value': 0, 'quality': 0}
         }
         self.range = float(1 << 13)
+        self.timeout = 1000
 
         super(Emotiv, self).__init__()
 
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.hidraw.close()
 
     def setup(self):
@@ -118,13 +120,15 @@ class Emotiv(Source):
 
     def read(self):
         while True:
-            data = self.hidraw.read(32)
-            if data != "":
-                packet = self.decryptPacket(data)
-                output = {}
-                for (key, data) in packet.sensors.items():
-                    output.update({key : self.normalize(data['value'])})
-                self.sendPackage(output)
+            (read, write, x) = select.select([self.hidraw],[],[],self.timeout)
+            for file in read:
+                data = self.hidraw.read(32)
+                if data != "":
+                    packet = self.decryptPacket(data)
+                    output = {}
+                    for (key, data) in packet.sensors.items():
+                        output.update({key : self.normalize(data['value'])})
+                    self.sendPackage(output)
 
     def getLinuxSetup(self):
         rawinputs = []
@@ -151,14 +155,14 @@ class Emotiv(Source):
                     with open(input[0] + "/serial", 'r') as f:
                         serial = f.readline().strip()
                         f.close()
-                    print("Serial: " + serial + " Device: " + input[1])
+                    #print("Serial: " + serial + " Device: " + input[1])
                     # Great we found it. But we need to use the second one...
                     hidraw = input[1]
                     id_hidraw = int(hidraw[-1])
                     # The dev headset might use the first device, or maybe if more than one are connected they might.
                     id_hidraw += 1
                     hidraw = "hidraw" + id_hidraw.__str__()
-                    print("Serial: " + serial + " Device: " + hidraw + " (Active)")
+                    #print("Serial: " + serial + " Device: " + hidraw + " (Active)")
                     return [serial, hidraw, ]
             except IOError as e:
                 print("Couldn't open file: %s" % e)

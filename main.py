@@ -22,9 +22,9 @@ if __name__ == '__main__':
             signalCtrls.append(controller)
             window.signalViewConnect(controller)
 
-            welcomeMessage = '''test welcome message\n'''
-            consoleController = ConsoleController(window.consoleView, window,
-                                          signalCtrls, welcomeMessage)
+        welcomeMessage = '''test welcome message\n'''
+        consoleController = ConsoleController(window.consoleView, window,
+                                              signalCtrls, welcomeMessage)
 
         window.show()
         sys.exit(app.exec_())

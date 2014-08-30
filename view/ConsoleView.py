@@ -8,8 +8,6 @@ class ConsoleView(QPlainTextEdit):
 
         self.prompt = ''
 
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(400)
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         self.setUndoRedoEnabled(False)
         self.document().setDefaultFont(QtGui.QFont("monospace", 10, QtGui.QFont.Normal))
